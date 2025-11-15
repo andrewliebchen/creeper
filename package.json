@@ -1,0 +1,34 @@
+{
+  "name": "creeper",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Meeting Copilot MVP - Real-time audio transcription and insights",
+  "scripts": {
+    "test:chunk-1": "bash scripts/test-chunk-1.sh",
+    "test:chunk-2": "bash scripts/test-chunk-2.sh",
+    "test:chunk-3": "bash scripts/test-chunk-3.sh",
+    "test:chunk-4": "bash scripts/test-chunk-4.sh",
+    "test:chunk-5": "bash scripts/test-chunk-5.sh",
+    "test:chunk-6": "bash scripts/test-chunk-6.sh",
+    "test:chunk-7": "bash scripts/test-chunk-7.sh",
+    "test:chunk-8": "bash scripts/test-chunk-8.sh",
+    "test:chunk-9": "bash scripts/test-chunk-9.sh",
+    "test:chunk-10": "bash scripts/test-chunk-10.sh",
+    "test:chunk-11": "bash scripts/test-chunk-11.sh",
+    "test:chunk-12": "bash scripts/test-chunk-12.sh",
+    "test:chunk-13": "bash scripts/test-chunk-13.sh",
+    "test:chunk-14": "bash scripts/test-chunk-14.sh",
+    "test:chunk-15": "bash scripts/test-chunk-15.sh",
+    "test:chunk-16": "bash scripts/test-chunk-16.sh",
+    "test:integration": "bash scripts/test-integration.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
+
