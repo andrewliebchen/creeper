@@ -2,7 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import type { IngestAudioChunkResponse } from '@creeper/shared';
-import { createSnippet } from '../services/supabase.js';
+import { createSnippet, supabase } from '../services/supabase.js';
 import { transcribeAudio, updateSnippetTranscript } from '../services/openai.js';
 import { generateEmbedding, storeSnippetEmbedding } from '../services/embeddings.js';
 
@@ -46,12 +46,14 @@ async function processTranscription(
     // Update snippet with transcript
     await updateSnippetTranscript(snippetId, result.text);
 
-    console.log(`✓ Transcribed snippet ${snippetId}: ${result.text.substring(0, 50)}...`);
+    console.log(`\n📝 Transcription complete:`);
+    console.log(`   Snippet ID: ${snippetId}`);
+    console.log(`   Transcript: ${result.text.substring(0, 100)}${result.text.length > 100 ? '...' : ''}`);
 
     // Generate and store embedding
     const embedding = await generateEmbedding(result.text);
     await storeSnippetEmbedding(snippetId, embedding);
-    console.log(`✓ Generated embedding for snippet ${snippetId}`);
+    console.log(`✓ Generated and stored embedding for snippet ${snippetId}`);
 
     // Trigger insight generation (async, don't wait)
     // This will be called by the frontend when needed, or can be triggered here
@@ -73,7 +75,32 @@ router.post('/audio-chunk', upload.single('audio'), async (req, res) => {
     }
 
     const { timestamp, duration, format } = req.body;
-    const userId = req.headers['x-user-id'] as string || 'default-user'; // TODO: proper auth
+    // Get or create default user (UUID required for database)
+    let userId = req.headers['x-user-id'] as string;
+    if (!userId) {
+      // Try to get existing user, or create a default one
+      const { data: existingUsers } = await supabase
+        .from('users')
+        .select('id')
+        .limit(1);
+      
+      if (existingUsers && existingUsers.length > 0) {
+        userId = existingUsers[0].id;
+      } else {
+        // Create default user
+        const { data: newUser, error: userError } = await supabase
+          .from('users')
+          .insert({})
+          .select('id')
+          .single();
+        
+        if (userError || !newUser) {
+          throw new Error(`Failed to create default user: ${userError?.message || 'Unknown error'}`);
+        }
+        userId = newUser.id;
+        console.log(`✓ Created default user: ${userId}`);
+      }
+    }
 
     if (!timestamp || !duration) {
       return res.status(400).json({
@@ -100,12 +127,18 @@ router.post('/audio-chunk', upload.single('audio'), async (req, res) => {
       status: 'received',
     };
 
+    console.log(`\n🎤 Audio chunk received:`);
+    console.log(`   Snippet ID: ${snippetId}`);
+    console.log(`   Size: ${req.file.size} bytes`);
+    console.log(`   Duration: ${duration}s`);
+    console.log(`   Timestamp: ${new Date(parseInt(timestamp, 10)).toISOString()}`);
+
     res.json(response);
 
     // Trigger transcription pipeline asynchronously
     // Process transcription in background (don't block response)
     processTranscription(snippetId, req.file.buffer, format || 'webm').catch((error) => {
-      console.error(`Failed to transcribe snippet ${snippetId}:`, error);
+      console.error(`❌ Failed to transcribe snippet ${snippetId}:`, error);
     });
   } catch (error) {
     console.error('Error ingesting audio chunk:', error);

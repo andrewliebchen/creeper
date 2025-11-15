@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAudioCapture } from "./hooks/useAudioCapture";
 import { uploadAudioChunk, getInsight } from "./services/api";
 import { Settings } from "./components/Settings";
@@ -10,11 +10,29 @@ function App() {
   const [backendUrl] = useState<string>("http://localhost:3000");
   const [showSettings, setShowSettings] = useState(false);
 
+  const [chunkDuration, setChunkDuration] = useState(60);
+  
+  // Load chunk duration from settings
+  useEffect(() => {
+    const saved = localStorage.getItem('creeper_config');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.chunkDuration) {
+          setChunkDuration(parsed.chunkDuration);
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+    }
+  }, []);
+
   const { isListening, error, chunkCount, startListening, stopListening } = useAudioCapture({
-    chunkDuration: 60, // 60 seconds default
+    chunkDuration, // Use saved chunk duration
+    backendUrl,
     onChunkReady: async (chunk, timestamp) => {
       console.log('Audio chunk ready:', { size: chunk.size, timestamp });
-      const duration = 60; // chunk duration in seconds
+      const duration = chunkDuration; // Use configured chunk duration
       
       try {
         // Upload chunk to backend
@@ -68,7 +86,21 @@ function App() {
         </button>
         {isListening && <p>Chunks captured: {chunkCount}</p>}
       </div>
-      {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+      {showSettings && <Settings onClose={() => {
+        setShowSettings(false);
+        // Reload chunk duration from settings
+        const saved = localStorage.getItem('creeper_config');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed.chunkDuration) {
+              setChunkDuration(parsed.chunkDuration);
+            }
+          } catch (e) {
+            // Ignore parse errors
+          }
+        }
+      }} />}
       {chunks.length > 0 && (
         <div className="chunks">
           <h3>Recent Chunks</h3>

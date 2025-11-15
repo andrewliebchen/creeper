@@ -88,6 +88,9 @@ export function useAudioCapture(options: UseAudioCaptureOptions = {}) {
       mediaRecorder.start();
 
       // Set up chunking interval
+      if (chunkIntervalRef.current !== null) {
+        clearInterval(chunkIntervalRef.current);
+      }
       chunkIntervalRef.current = window.setInterval(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
           // Stop current chunk and start new one

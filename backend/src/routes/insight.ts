@@ -110,7 +110,12 @@ router.post('/for-chunk', async (req, res) => {
     }
 
     // Generate insights
+    console.log(`\n💡 Generating insights for snippet ${snippetId}...`);
     const bullets = await generateInsight(snippetId, finalTranscript);
+    console.log(`✓ Generated ${bullets.length} insights:`);
+    bullets.forEach((bullet, idx) => {
+      console.log(`   ${idx + 1}. ${bullet}`);
+    });
 
     // Store insight in database
     const insightId = uuidv4();
@@ -126,6 +131,8 @@ router.post('/for-chunk', async (req, res) => {
     if (insertError) {
       console.error('Failed to store insight:', insertError);
       // Continue anyway, return the insight
+    } else {
+      console.log(`✓ Stored insight ${insightId} in database`);
     }
 
     const response: InsightResponse = {
