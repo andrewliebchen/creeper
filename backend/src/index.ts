@@ -1,12 +1,20 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { resolve } from 'path';
+
+// Load environment variables FIRST from project root, before importing any routes that use Supabase
+// When running from backend/, go up one level to find .env
+const envPath = resolve(process.cwd(), '../.env');
+dotenv.config({ path: envPath });
+// Also try current directory in case running from root
+dotenv.config();
+
+// Import routes after dotenv is loaded
 import { healthRouter } from './routes/health.js';
 import { ingestRouter } from './routes/ingest.js';
 import { insightRouter } from './routes/insight.js';
 import { documentsRouter } from './routes/documents.js';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3000;

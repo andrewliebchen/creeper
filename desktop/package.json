@@ -17,8 +17,7 @@
     "react-dom": "^18.2.0",
     "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/plugin-shell": "^2.0.0",
-    "@tauri-apps/plugin-notification": "^2.0.0",
-    "@tauri-apps/plugin-system-tray": "^2.0.0"
+    "@tauri-apps/plugin-notification": "^2.0.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.0.0",

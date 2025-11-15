@@ -1,12 +1,33 @@
 import OpenAI from 'openai';
 import type { MeetingSnippet } from '@creeper/shared';
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error('Missing OPENAI_API_KEY environment variable');
+// Lazy initialization - client is created on first access
+let _openai: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+  if (!_openai) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('Missing OPENAI_API_KEY environment variable');
+    }
+    _openai = new OpenAI({
+      apiKey,
+    });
+  }
+  return _openai;
 }
 
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Export a proxy that lazily initializes the client
+export const openai = new Proxy({} as OpenAI, {
+  get(_target, prop) {
+    const client = getOpenAI();
+    const value = client[prop as keyof OpenAI];
+    // If it's a function, bind it to the client
+    if (typeof value === 'function') {
+      return value.bind(client);
+    }
+    return value;
+  }
 });
 
 export interface TranscriptionResult {

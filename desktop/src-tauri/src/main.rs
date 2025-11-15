@@ -5,54 +5,21 @@ mod commands;
 
 use std::collections::HashMap;
 use std::sync::Mutex;
-use tauri::{Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, CustomMenuItem};
 use commands::*;
 
 fn main() {
     let config_state: Mutex<HashMap<String, String>> = Mutex::new(HashMap::new());
     
-    // Create system tray menu
-    let toggle = CustomMenuItem::new("toggle".to_string(), "Start Listening");
-    let show = CustomMenuItem::new("show".to_string(), "Show Window");
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-    let tray_menu = SystemTrayMenu::new()
-        .add_item(toggle)
-        .add_item(show)
-        .add_item(quit);
-    
-    let system_tray = SystemTray::new().with_menu(tray_menu);
-    
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_notification::init())
-        .system_tray(system_tray)
-        .on_system_tray_event(|app, event| {
-            match event {
-                SystemTrayEvent::LeftClick { .. } => {
-                    let window = app.get_window("main").unwrap();
-                    window.show().unwrap();
-                    window.set_focus().unwrap();
-                }
-                SystemTrayEvent::MenuItemClick { id, .. } => {
-                    match id.as_str() {
-                        "toggle" => {
-                            // Toggle listening - this will be handled by frontend
-                            // For now, just show window
-                            let window = app.get_window("main").unwrap();
-                            window.show().unwrap();
-                        }
-                        "show" => {
-                            let window = app.get_window("main").unwrap();
-                            window.show().unwrap();
-                            window.set_focus().unwrap();
-                        }
-                        "quit" => {
-                            app.exit(0);
-                        }
-                        _ => {}
-                    }
-                }
-                _ => {}
+        // TODO: Add system tray icon in a future update
+        // For now, we'll keep it simple to get the app building
+        .on_window_event(|_window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                // Hide window instead of closing when user clicks X
+                _window.hide().unwrap();
+                api.prevent_close();
             }
         })
         .manage(config_state)
