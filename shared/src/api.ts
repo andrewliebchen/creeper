@@ -66,6 +66,7 @@ export interface HealthResponse {
 // Session list and detail
 export interface SessionSummary {
   id: string;
+  name?: string; // LLM-generated session name
   startedAt: string;
   endedAt?: string;
   documentPreview?: string; // First line of document
@@ -81,6 +82,7 @@ export interface GetSessionResponse {
   session: {
     id: string;
     userId: string;
+    name?: string; // LLM-generated session name
     startedAt: string;
     endedAt?: string;
     createdAt: string;

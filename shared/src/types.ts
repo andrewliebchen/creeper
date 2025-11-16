@@ -20,6 +20,7 @@ export interface Transcript {
 export interface MeetingSession {
   id: string;
   userId: string;
+  name?: string; // LLM-generated session name
   startedAt: string;
   endedAt?: string;
   createdAt: string;

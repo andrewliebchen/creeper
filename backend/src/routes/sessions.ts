@@ -88,7 +88,7 @@ router.get('/', async (req, res) => {
     // Get all sessions for user
     const { data: sessions, error } = await supabase
       .from('meeting_sessions')
-      .select('id, started_at, ended_at, updated_at')
+      .select('id, name, started_at, ended_at, updated_at')
       .eq('user_id', finalUserId)
       .order('started_at', { ascending: false });
 
@@ -113,6 +113,7 @@ router.get('/', async (req, res) => {
 
         return {
           id: session.id,
+          name: session.name || undefined,
           startedAt: session.started_at,
           endedAt: session.ended_at || undefined,
           documentPreview,
@@ -168,6 +169,7 @@ router.get('/:sessionId', async (req, res) => {
       session: {
         id: session.id,
         userId: session.user_id,
+        name: session.name || undefined,
         startedAt: session.started_at,
         endedAt: session.ended_at || undefined,
         createdAt: session.created_at,

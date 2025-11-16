@@ -139,9 +139,20 @@ export function SessionList({
                 onClick={() => onSessionSelect(session.id)}
               >
                 <div className="session-item-header">
-                  <span className="session-item-time">
-                    {formatDate(session.startedAt)}
-                  </span>
+                  <div className="session-item-title">
+                    {session.name ? (
+                      <span className="session-item-name">{session.name}</span>
+                    ) : (
+                      <span className="session-item-time">
+                        {formatDate(session.startedAt)}
+                      </span>
+                    )}
+                    {session.name && (
+                      <span className="session-item-time-secondary">
+                        {formatDate(session.startedAt)}
+                      </span>
+                    )}
+                  </div>
                   {session.isActive && (
                     <span className="session-item-badge">Active</span>
                   )}

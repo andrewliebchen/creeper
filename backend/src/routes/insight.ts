@@ -14,7 +14,7 @@ const router = Router();
 async function generateOrUpdateSessionInsight(
   sessionId: string,
   newTranscripts: string[]
-): Promise<{ bullets: string[]; content: string }> {
+): Promise<{ bullets: string[]; content: string; sessionName?: string }> {
   // Get existing insight for this session (if any)
   const { data: existingInsight } = await supabase
     .from('insights')
@@ -27,6 +27,15 @@ async function generateOrUpdateSessionInsight(
   // Check if user has edited the document since last LLM update
   const userEditedRecently = existingInsight?.user_edited_at && 
     existingInsight.user_edited_at > existingInsight.updated_at;
+
+  // Get session to check if it already has a name
+  const { data: session } = await supabase
+    .from('meeting_sessions')
+    .select('name')
+    .eq('id', sessionId)
+    .maybeSingle();
+
+  const needsName = !session?.name;
 
   // Get all transcripts from this session
   const { data: snippets } = await supabase
@@ -158,7 +167,38 @@ This document will be updated incrementally as more transcripts come in. Make it
     const content = bullets.length > 0 ? responseText.trim() : responseText.trim();
     const finalBullets = bullets.length > 0 ? bullets : [responseText.trim()];
 
-    return { bullets: finalBullets, content };
+    // Generate session name if needed (only on first insight generation)
+    let sessionName: string | undefined;
+    if (needsName && allTranscripts.length > 0) {
+      try {
+        const nameCompletion = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a helpful assistant that generates concise, descriptive names for meeting sessions based on their content.',
+            },
+            {
+              role: 'user',
+              content: `Based on this meeting transcript, generate a short, descriptive name (2-6 words) for this session:\n\n${allTranscripts.slice(0, 3).join('\n\n')}\n\nReturn only the name, nothing else.`,
+            },
+          ],
+          max_tokens: 20,
+          temperature: 0.7,
+        });
+
+        sessionName = nameCompletion.choices[0]?.message?.content?.trim();
+        // Clean up the name (remove quotes, extra whitespace)
+        if (sessionName) {
+          sessionName = sessionName.replace(/^["']|["']$/g, '').trim();
+        }
+      } catch (error) {
+        console.warn('Failed to generate session name:', error);
+        // Continue without name - not critical
+      }
+    }
+
+    return { bullets: finalBullets, content, sessionName };
   } catch (error) {
     console.error('OpenAI insight generation error:', error);
     throw new Error(
@@ -286,15 +326,32 @@ async function handleSessionInsightRequest(sessionId: string): Promise<InsightRe
     let bullets: string[];
     let content: string;
     
+    let sessionName: string | undefined;
+    
     try {
       const result = await generateOrUpdateSessionInsight(sessionId, newTranscripts);
       bullets = result.bullets;
       content = result.content;
+      sessionName = result.sessionName;
       
       console.log(`✓ ${existingInsight ? 'Updated' : 'Generated'} insights:`);
       bullets.forEach((bullet, idx) => {
         console.log(`   ${idx + 1}. ${bullet}`);
       });
+      
+      // Update session name if generated
+      if (sessionName) {
+        const { error: nameError } = await supabase
+          .from('meeting_sessions')
+          .update({ name: sessionName })
+          .eq('id', sessionId);
+        
+        if (nameError) {
+          console.warn('Failed to update session name:', nameError);
+        } else {
+          console.log(`✓ Updated session name: "${sessionName}"`);
+        }
+      }
     } catch (error) {
       console.error(`❌ Failed to generate/update insights:`, error);
       throw error; // Re-throw to be caught by the route handler

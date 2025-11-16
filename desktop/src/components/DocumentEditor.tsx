@@ -7,6 +7,7 @@ interface DocumentEditorProps {
   backendUrl: string;
   onContentChange?: (content: string) => void;
   isLLMUpdating?: boolean;
+  onStatusChange?: (status: { isSaving: boolean; lastSaved: Date | null; isLLMUpdating: boolean }) => void;
 }
 
 export function DocumentEditor({
@@ -15,6 +16,7 @@ export function DocumentEditor({
   backendUrl,
   onContentChange,
   isLLMUpdating = false,
+  onStatusChange,
 }: DocumentEditorProps) {
   const [content, setContent] = useState(initialContent);
   const [isSaving, setIsSaving] = useState(false);
@@ -60,31 +62,25 @@ export function DocumentEditor({
     setIsSaving(true);
     try {
       await updateDocument(sessionId, contentToSave, backendUrl);
-      setLastSaved(new Date());
+      const savedTime = new Date();
+      setLastSaved(savedTime);
+      onStatusChange?.({ isSaving: false, lastSaved: savedTime, isLLMUpdating });
     } catch (error) {
       console.error('Failed to save document:', error);
       // TODO: Show error notification
+      onStatusChange?.({ isSaving: false, lastSaved, isLLMUpdating });
     } finally {
       setIsSaving(false);
     }
   };
 
+  // Notify parent of status changes
+  useEffect(() => {
+    onStatusChange?.({ isSaving, lastSaved, isLLMUpdating });
+  }, [isSaving, lastSaved, isLLMUpdating, onStatusChange]);
+
   return (
     <div className="document-editor">
-      <div className="document-editor-header">
-        <h3>Document</h3>
-        <div className="document-status">
-          {isSaving && <span className="status-saving">Saving...</span>}
-          {!isSaving && lastSaved && (
-            <span className="status-saved">
-              Saved {lastSaved.toLocaleTimeString()}
-            </span>
-          )}
-          {isLLMUpdating && (
-            <span className="status-llm-updating">LLM is updating...</span>
-          )}
-        </div>
-      </div>
       <textarea
         ref={textareaRef}
         value={content}

@@ -189,8 +189,11 @@ button:focus-visible {
 
 .app-main {
   flex: 1;
-  overflow-y: auto;
-  padding: 2rem;
+  overflow: hidden;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .welcome-screen {
@@ -258,9 +261,26 @@ button:focus-visible {
   margin-bottom: 0.5rem;
 }
 
+.session-item-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.session-item-name {
+  font-size: 1em;
+  font-weight: 500;
+  color: #fff;
+}
+
 .session-item-time {
   font-size: 0.9em;
   color: #aaa;
+}
+
+.session-item-time-secondary {
+  font-size: 0.75em;
+  color: #888;
 }
 
 .session-item-badge {
@@ -293,22 +313,28 @@ button:focus-visible {
 
 /* Session View */
 .session-view {
-  max-width: 1200px;
+  max-width: 1600px;
+  width: 100%;
   margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .session-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid #444;
+  flex-shrink: 0;
 }
 
 .session-header h2 {
   margin: 0;
-  font-size: 1.5em;
+  font-size: 1.2em;
+  line-height: 1.3;
 }
 
 .session-id {
@@ -318,9 +344,10 @@ button:focus-visible {
 }
 
 .session-meta {
-  margin: 0.5rem 0 0 0;
-  font-size: 0.9em;
+  margin: 0.25rem 0 0 0;
+  font-size: 0.85em;
   color: #888;
+  line-height: 1.4;
 }
 
 .session-controls {
@@ -328,27 +355,18 @@ button:focus-visible {
   gap: 1rem;
 }
 
+.session-view .error {
+  flex-shrink: 0;
+  margin: 0.5rem 0;
+}
+
 /* Document Editor */
 .document-editor {
-  margin-top: 2rem;
-}
-
-.document-editor-header {
+  flex: 1;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.document-editor-header h3 {
-  margin: 0;
-  font-size: 1.2em;
-}
-
-.document-status {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.85em;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 0.75rem;
 }
 
 .status-saving {
@@ -365,7 +383,8 @@ button:focus-visible {
 
 .document-textarea {
   width: 100%;
-  min-height: 400px;
+  flex: 1;
+  min-height: 0;
   padding: 1rem;
   border-radius: 8px;
   border: 1px solid #444;
@@ -374,7 +393,7 @@ button:focus-visible {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.95em;
   line-height: 1.6;
-  resize: vertical;
+  resize: none;
 }
 
 .document-textarea:focus {

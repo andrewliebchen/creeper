@@ -26,6 +26,11 @@ export function SessionView({
   const [documentContent, setDocumentContent] = useState('');
   const [isLLMUpdating, setIsLLMUpdating] = useState(false);
   const [chunkDuration, setChunkDuration] = useState(60);
+  const [documentStatus, setDocumentStatus] = useState<{
+    isSaving: boolean;
+    lastSaved: Date | null;
+    isLLMUpdating: boolean;
+  }>({ isSaving: false, lastSaved: null, isLLMUpdating: false });
   const insightPollIntervalRef = useRef<number | null>(null);
   const lastContentRef = useRef<string>('');
 
@@ -94,6 +99,7 @@ export function SessionView({
     const pollInsights = async () => {
       try {
         setIsLLMUpdating(true);
+        setDocumentStatus(prev => ({ ...prev, isLLMUpdating: true }));
         const insightResult = await getSessionInsight(sessionId, backendUrl);
         if (insightResult.insight) {
           const newContent = insightResult.insight.content || insightResult.insight.bullets?.join('\n') || '';
@@ -124,6 +130,7 @@ export function SessionView({
         }
       } finally {
         setIsLLMUpdating(false);
+        setDocumentStatus(prev => ({ ...prev, isLLMUpdating: false }));
       }
     };
 
@@ -185,15 +192,27 @@ export function SessionView({
       <div className="session-header">
         <div>
           <h2>
-            Session{' '}
-            <span className="session-id">
-              ({sessionId.substring(0, 8)})
-            </span>
+            {sessionData.session.name || (
+              <>
+                Session{' '}
+                <span className="session-id">
+                  ({sessionId.substring(0, 8)})
+                </span>
+              </>
+            )}
           </h2>
           <p className="session-meta">
             Started: {new Date(sessionData.session.startedAt).toLocaleString()}
             {sessionData.session.endedAt && (
               <> • Ended: {new Date(sessionData.session.endedAt).toLocaleString()}</>
+            )}
+            {isListening && <> • Chunks captured: {chunkCount}</>}
+            {documentStatus.isSaving && <> • <span className="status-saving">Saving...</span></>}
+            {!documentStatus.isSaving && documentStatus.lastSaved && (
+              <> • <span className="status-saved">Saved {documentStatus.lastSaved.toLocaleTimeString()}</span></>
+            )}
+            {documentStatus.isLLMUpdating && (
+              <> • <span className="status-llm-updating">LLM is updating...</span></>
             )}
           </p>
         </div>
@@ -205,7 +224,6 @@ export function SessionView({
       </div>
 
       {error && <p className="error">Error: {error}</p>}
-      {isListening && <p>Chunks captured: {chunkCount}</p>}
 
       <DocumentEditor
         sessionId={sessionId}
@@ -213,6 +231,7 @@ export function SessionView({
         backendUrl={backendUrl}
         onContentChange={handleDocumentChange}
         isLLMUpdating={isLLMUpdating}
+        onStatusChange={setDocumentStatus}
       />
     </div>
   );
