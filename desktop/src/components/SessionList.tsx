@@ -8,6 +8,7 @@ interface SessionListProps {
   onSessionSelect: (sessionId: string) => void;
   onNewSession: () => void;
   refreshTrigger?: number; // Increment this to force refresh
+  onSettingsClick: () => void;
 }
 
 // Compare two session arrays to see if they're different
@@ -49,6 +50,7 @@ export function SessionList({
   onSessionSelect,
   onNewSession,
   refreshTrigger,
+  onSettingsClick,
 }: SessionListProps) {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,9 +116,11 @@ export function SessionList({
   return (
     <div className="session-list">
       <div className="session-list-header">
-        <h2>Sessions</h2>
         <button onClick={onNewSession} className="new-session-btn">
           + New
+        </button>
+        <button onClick={onSettingsClick} className="settings-btn">
+          Settings
         </button>
       </div>
       {loading && <div className="loading">Loading sessions...</div>}

@@ -172,22 +172,7 @@ button:focus-visible {
   width: 100vw;
 }
 
-.app-header {
-  padding: 1rem 2rem;
-  border-bottom: 1px solid #444;
-  text-align: left;
-}
-
-.app-header h1 {
-  margin: 0;
-  font-size: 1.5em;
-}
-
-.app-header p {
-  margin: 0.25rem 0 0 0;
-  font-size: 0.9em;
-  color: #888;
-}
+/* App header removed */
 
 .app-content {
   display: flex;
@@ -232,11 +217,7 @@ button:focus-visible {
   align-items: center;
 }
 
-.session-list-header h2 {
-  margin: 0;
-  font-size: 1.2em;
-}
-
+.settings-btn,
 .new-session-btn {
   padding: 0.4em 0.8em;
   font-size: 0.9em;

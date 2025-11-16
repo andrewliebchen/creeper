@@ -8,7 +8,6 @@ import {
   getSession,
 } from '../services/api';
 import { DocumentEditor } from './DocumentEditor';
-import { Settings } from './Settings';
 import { showInsightNotification } from '../services/notifications';
 import type { GetSessionResponse } from '@creeper/shared';
 
@@ -26,7 +25,6 @@ export function SessionView({
   const [sessionData, setSessionData] = useState<GetSessionResponse | null>(null);
   const [documentContent, setDocumentContent] = useState('');
   const [isLLMUpdating, setIsLLMUpdating] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [chunkDuration, setChunkDuration] = useState(60);
   const insightPollIntervalRef = useRef<number | null>(null);
   const lastContentRef = useRef<string>('');
@@ -203,9 +201,6 @@ export function SessionView({
           <button onClick={handleToggle}>
             {isListening ? 'Stop Listening' : sessionData.session.endedAt ? 'Resume' : 'Start Listening'}
           </button>
-          <button onClick={() => setShowSettings(true)} style={{ marginLeft: '1rem' }}>
-            Settings
-          </button>
         </div>
       </div>
 
@@ -219,26 +214,6 @@ export function SessionView({
         onContentChange={handleDocumentChange}
         isLLMUpdating={isLLMUpdating}
       />
-
-      {showSettings && (
-        <Settings
-          onClose={() => {
-            setShowSettings(false);
-            // Reload chunk duration from settings
-            const saved = localStorage.getItem('creeper_config');
-            if (saved) {
-              try {
-                const parsed = JSON.parse(saved);
-                if (parsed.chunkDuration) {
-                  setChunkDuration(parsed.chunkDuration);
-                }
-              } catch (e) {
-                // Ignore parse errors
-              }
-            }
-          }}
-        />
-      )}
     </div>
   );
 }

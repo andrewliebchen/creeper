@@ -2,11 +2,13 @@ import { useState } from "react";
 import { createSession } from "./services/api";
 import { SessionList } from "./components/SessionList";
 import { SessionView } from "./components/SessionView";
+import { Settings } from "./components/Settings";
 
 function App() {
   const [backendUrl] = useState<string>("http://localhost:3000");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleNewSession = async () => {
     try {
@@ -33,10 +35,6 @@ function App() {
 
   return (
     <div className="app-container">
-      <div className="app-header">
-        <h1>Creeper</h1>
-        <p>Meeting Copilot MVP</p>
-      </div>
       <div className="app-content">
         <div className="app-sidebar">
           <SessionList
@@ -45,6 +43,7 @@ function App() {
             onSessionSelect={handleSessionSelect}
             onNewSession={handleNewSession}
             refreshTrigger={refreshTrigger}
+            onSettingsClick={() => setShowSettings(true)}
           />
         </div>
         <div className="app-main">
@@ -63,6 +62,9 @@ function App() {
           )}
         </div>
       </div>
+      {showSettings && (
+        <Settings onClose={() => setShowSettings(false)} />
+      )}
     </div>
   );
 }
