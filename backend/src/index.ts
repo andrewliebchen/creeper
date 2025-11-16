@@ -15,6 +15,7 @@ import { healthRouter } from './routes/health.js';
 import { ingestRouter } from './routes/ingest.js';
 import { insightRouter } from './routes/insight.js';
 import { documentsRouter } from './routes/documents.js';
+import { sessionsRouter } from './routes/sessions.js';
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3000;
@@ -26,6 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/health', healthRouter);
+app.use('/sessions', sessionsRouter);
 app.use('/ingest', ingestRouter);
 app.use('/insight', insightRouter);
 app.use('/documents', documentsRouter);

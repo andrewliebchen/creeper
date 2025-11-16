@@ -15,9 +15,19 @@ export interface IngestAudioChunkResponse {
   status: 'received' | 'processing' | 'completed';
 }
 
-// Insight generation
+// Session management
+export interface CreateSessionRequest {
+  userId?: string;
+}
+
+export interface CreateSessionResponse {
+  sessionId: string;
+}
+
+// Insight generation (now session-based)
 export interface InsightRequest {
-  snippetId: string;
+  sessionId: string; // Changed from snippetId
+  snippetId?: string; // Optional, for backward compatibility
   transcript?: string;
 }
 

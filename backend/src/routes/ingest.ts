@@ -38,6 +38,7 @@ async function processTranscription(
   audioBuffer: Buffer,
   format: string
 ): Promise<void> {
+  console.log(`\n🔄 Starting transcription for snippet ${snippetId}...`);
   try {
     // Transcribe audio
     const filename = `audio.${format}`;
@@ -66,15 +67,23 @@ async function processTranscription(
 
 // POST /ingest/audio-chunk
 router.post('/audio-chunk', upload.single('audio'), async (req, res) => {
+  console.log(`\n📥 Incoming request to /ingest/audio-chunk`);
+  console.log(`   Has file: ${!!req.file}`);
+  console.log(`   Body keys: ${Object.keys(req.body).join(', ')}`);
+  
   try {
     if (!req.file) {
+      console.error('❌ No audio file in request');
       return res.status(400).json({
         status: 'error',
         message: 'No audio file provided',
       });
     }
 
-    const { timestamp, duration, format } = req.body;
+    const { timestamp, duration, format, sessionId } = req.body;
+    // Get sessionId from body or header
+    const finalSessionId = sessionId || (req.headers['x-session-id'] as string);
+    console.log(`   Session ID: ${finalSessionId || 'NOT PROVIDED'}`);
     // Get or create default user (UUID required for database)
     let userId = req.headers['x-user-id'] as string;
     if (!userId) {
@@ -114,6 +123,7 @@ router.post('/audio-chunk', upload.single('audio'), async (req, res) => {
     const snippet = await createSnippet({
       id: snippetId,
       userId,
+      sessionId: finalSessionId || undefined,
       timestamp: parseInt(timestamp, 10),
       duration: parseInt(duration, 10),
     });
@@ -129,6 +139,7 @@ router.post('/audio-chunk', upload.single('audio'), async (req, res) => {
 
     console.log(`\n🎤 Audio chunk received:`);
     console.log(`   Snippet ID: ${snippetId}`);
+    console.log(`   Session ID: ${finalSessionId || 'NOT PROVIDED'}`);
     console.log(`   Size: ${req.file.size} bytes`);
     console.log(`   Duration: ${duration}s`);
     console.log(`   Timestamp: ${new Date(parseInt(timestamp, 10)).toISOString()}`);

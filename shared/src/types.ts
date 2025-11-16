@@ -17,9 +17,19 @@ export interface Transcript {
   createdAt: string;
 }
 
+export interface MeetingSession {
+  id: string;
+  userId: string;
+  startedAt: string;
+  endedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface MeetingSnippet {
   id: string;
   userId: string;
+  sessionId?: string; // Link to meeting session
   timestamp: number;
   duration: number;
   transcript?: string;
@@ -30,10 +40,13 @@ export interface MeetingSnippet {
 
 export interface Insight {
   id: string;
-  snippetId: string;
-  bullets: string[]; // 1-3 bullet points
+  sessionId: string; // Changed from snippetId to sessionId
+  snippetId?: string; // Kept for backward compatibility
+  bullets: string[]; // 1-3 bullet points (legacy, for display)
+  content?: string; // Full insight document that gets updated incrementally
   context?: string; // RAG context used
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface Document {

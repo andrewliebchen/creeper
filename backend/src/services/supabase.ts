@@ -34,6 +34,7 @@ export const supabase = new Proxy({} as SupabaseClient, {
 export interface CreateSnippetParams {
   id: string;
   userId: string;
+  sessionId?: string;
   timestamp: number;
   duration: number;
 }
@@ -44,6 +45,7 @@ export async function createSnippet(params: CreateSnippetParams): Promise<Meetin
     .insert({
       id: params.id,
       user_id: params.userId,
+      session_id: params.sessionId || null,
       timestamp: params.timestamp,
       duration: params.duration,
     })
@@ -57,6 +59,7 @@ export async function createSnippet(params: CreateSnippetParams): Promise<Meetin
   return {
     id: data.id,
     userId: data.user_id,
+    sessionId: data.session_id || undefined,
     timestamp: data.timestamp,
     duration: data.duration,
     transcript: data.transcript || undefined,
