@@ -63,3 +63,59 @@ export interface HealthResponse {
   };
 }
 
+// Session list and detail
+export interface SessionSummary {
+  id: string;
+  startedAt: string;
+  endedAt?: string;
+  documentPreview?: string; // First line of document
+  lastUpdated: string;
+  isActive: boolean; // ended_at IS NULL
+}
+
+export interface ListSessionsResponse {
+  sessions: SessionSummary[];
+}
+
+export interface GetSessionResponse {
+  session: {
+    id: string;
+    userId: string;
+    startedAt: string;
+    endedAt?: string;
+    createdAt: string;
+    updatedAt: string;
+    isActive: boolean;
+  };
+  document: {
+    id: string;
+    content: string;
+    bullets: string[];
+    createdAt: string;
+    updatedAt: string;
+    userEditedAt?: string;
+  } | null;
+}
+
+// Document update
+export interface UpdateDocumentRequest {
+  content: string;
+}
+
+export interface UpdateDocumentResponse {
+  status: 'ok';
+  document: {
+    id: string;
+    content: string;
+    updatedAt: string;
+    userEditedAt: string;
+  };
+}
+
+// Resume session
+export interface ResumeSessionResponse {
+  status: 'ok';
+  sessionId: string;
+  message: string;
+}
+

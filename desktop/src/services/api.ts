@@ -1,4 +1,13 @@
-import type { IngestAudioChunkResponse, InsightResponse, CreateSessionResponse } from '@creeper/shared';
+import type {
+  IngestAudioChunkResponse,
+  InsightResponse,
+  CreateSessionResponse,
+  ListSessionsResponse,
+  GetSessionResponse,
+  UpdateDocumentRequest,
+  UpdateDocumentResponse,
+  ResumeSessionResponse,
+} from '@creeper/shared';
 
 const DEFAULT_BACKEND_URL = 'http://localhost:3000';
 
@@ -91,6 +100,83 @@ export async function getSessionInsight(
     err.status = response.status;
     err.response = response;
     throw err;
+  }
+
+  return response.json();
+}
+
+export async function listSessions(
+  backendUrl: string = DEFAULT_BACKEND_URL
+): Promise<ListSessionsResponse> {
+  const response = await fetch(`${backendUrl}/sessions`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function getSession(
+  sessionId: string,
+  backendUrl: string = DEFAULT_BACKEND_URL
+): Promise<GetSessionResponse> {
+  const response = await fetch(`${backendUrl}/sessions/${sessionId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function resumeSession(
+  sessionId: string,
+  backendUrl: string = DEFAULT_BACKEND_URL
+): Promise<ResumeSessionResponse> {
+  const response = await fetch(`${backendUrl}/sessions/${sessionId}/resume`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function updateDocument(
+  sessionId: string,
+  content: string,
+  backendUrl: string = DEFAULT_BACKEND_URL
+): Promise<UpdateDocumentResponse> {
+  const response = await fetch(`${backendUrl}/sessions/${sessionId}/document`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ content } as UpdateDocumentRequest),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+    throw new Error(error.message || `HTTP ${response.status}`);
   }
 
   return response.json();

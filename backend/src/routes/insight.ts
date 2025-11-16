@@ -18,11 +18,15 @@ async function generateOrUpdateSessionInsight(
   // Get existing insight for this session (if any)
   const { data: existingInsight } = await supabase
     .from('insights')
-    .select('content, bullets')
+    .select('content, bullets, updated_at, user_edited_at')
     .eq('session_id', sessionId)
     .order('updated_at', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle(); // Use maybeSingle() to handle no results gracefully
+
+  // Check if user has edited the document since last LLM update
+  const userEditedRecently = existingInsight?.user_edited_at && 
+    existingInsight.user_edited_at > existingInsight.updated_at;
 
   // Get all transcripts from this session
   const { data: snippets } = await supabase
@@ -65,8 +69,34 @@ async function generateOrUpdateSessionInsight(
   const newTranscriptsText = newTranscripts.join('\n\n');
   const allTranscriptsText = allTranscripts.join('\n\n');
 
-  const prompt = previousInsight
-    ? `You are a real-time meeting assistant maintaining an evolving insight document for this meeting session.
+  let prompt: string;
+  
+  if (userEditedRecently && previousInsight) {
+    // User has edited the document - merge their edits with new information
+    prompt = `You are a real-time meeting assistant maintaining an evolving insight document for this meeting session.
+
+IMPORTANT: The user has manually edited this document. You must preserve their edits and structure while incorporating new information.
+
+CURRENT USER-EDITED DOCUMENT:
+${previousInsight}
+
+NEW TRANSCRIPTS (since last update):
+${newTranscriptsText}
+
+FULL MEETING TRANSCRIPT (for context):
+${allTranscriptsText}
+${ragContext}
+
+Update the document by:
+1. Preserving the user's structure, formatting, and key points they wrote
+2. Adding new insights, facts, and next steps from the new transcripts
+3. Merging related information rather than duplicating
+4. Keeping it organized and actionable
+
+Do NOT overwrite or remove user edits. Integrate new information while respecting their work.`;
+  } else if (previousInsight) {
+    // Standard update - no recent user edits
+    prompt = `You are a real-time meeting assistant maintaining an evolving insight document for this meeting session.
 
 PREVIOUS INSIGHT DOCUMENT:
 ${previousInsight}
@@ -78,14 +108,23 @@ FULL MEETING TRANSCRIPT (for context):
 ${allTranscriptsText}
 ${ragContext}
 
-Update the insight document to incorporate the new information. Keep it concise (1-3 bullet points), actionable, and focused on what helps right now. Do not just summarize - provide insights that evolve as the meeting progresses.`
-    : `You are a real-time meeting assistant. Create an initial insight document for this meeting session.
+Update the insight document to incorporate the new information. Keep it concise, actionable, and focused on what helps right now. Do not just summarize - provide insights that evolve as the meeting progresses.`;
+  } else {
+    // Initial document creation
+    prompt = `You are a real-time meeting assistant. Create an initial insight document for this meeting session.
 
 MEETING TRANSCRIPT:
 ${allTranscriptsText}
 ${ragContext}
 
-Provide 1-3 helpful bullet points. Do not summarize. Focus on what helps right now. This insight document will be updated incrementally as more transcripts come in.`;
+Create a living document that will evolve throughout the meeting. Include:
+- Key notes and facts
+- Impressions and insights
+- Relevant context from documents (if provided)
+- Next steps and action items
+
+This document will be updated incrementally as more transcripts come in. Make it organized and useful.`;
+  }
 
   try {
     const completion = await openai.chat.completions.create({
@@ -93,14 +132,14 @@ Provide 1-3 helpful bullet points. Do not summarize. Focus on what helps right n
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful meeting assistant. Maintain a concise, evolving insight document that gets updated incrementally as new information arrives.',
+          content: 'You are a helpful meeting assistant maintaining a living document workspace. The document evolves throughout the meeting, incorporating notes, impressions, facts, insights, and next steps. When the user has edited the document, always preserve their edits and merge new information intelligently.',
         },
         {
           role: 'user',
           content: prompt,
         },
       ],
-      max_tokens: 300, // Increased for full insight document
+      max_tokens: 500, // Increased for full living document
       temperature: 0.7,
     });
 
@@ -137,7 +176,7 @@ async function handleSessionInsightRequest(sessionId: string): Promise<InsightRe
     .eq('session_id', sessionId)
     .order('updated_at', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle(); // Use maybeSingle() to handle no results gracefully
 
     // Get snippets that were created after the last insight update (or all if no insight)
     const lastUpdateTime = existingInsight?.updated_at;
@@ -192,7 +231,7 @@ async function handleSessionInsightRequest(sessionId: string): Promise<InsightRe
           .eq('session_id', sessionId)
           .order('updated_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (currentInsight) {
           return {
@@ -223,7 +262,7 @@ async function handleSessionInsightRequest(sessionId: string): Promise<InsightRe
         .eq('session_id', sessionId)
         .order('updated_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (currentInsight) {
         // Silently return existing insight (no log needed - nothing changed)
@@ -284,7 +323,11 @@ async function handleSessionInsightRequest(sessionId: string): Promise<InsightRe
         .eq('session_id', sessionId)
         .order('updated_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
+
+      if (!updatedInsight) {
+        throw new Error('Failed to retrieve updated insight');
+      }
 
       return {
         insight: {
@@ -320,7 +363,11 @@ async function handleSessionInsightRequest(sessionId: string): Promise<InsightRe
         .from('insights')
         .select('*')
         .eq('id', insightId)
-        .single();
+        .maybeSingle();
+
+      if (!newInsight) {
+        throw new Error('Failed to retrieve newly created insight');
+      }
 
       return {
         insight: {
@@ -394,7 +441,7 @@ router.post('/for-chunk', async (req, res) => {
       .from('meeting_snippets')
       .select('session_id, transcript')
       .eq('id', snippetId)
-      .single();
+      .maybeSingle();
 
     if (snippet?.session_id) {
       // Use session-based approach
