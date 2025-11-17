@@ -82,57 +82,87 @@ async function generateOrUpdateSessionInsight(
   
   if (userEditedRecently && previousInsight) {
     // User has edited the document - merge their edits with new information
-    prompt = `You are a real-time meeting assistant maintaining an evolving insight document for this meeting session.
+    prompt = `You are a real-time contextual listening assistant. You analyze transcripts and update an evolving insight document. 
+You automatically infer the type of situation (work meeting, lecture, personal conversation, YouTube video, etc.) 
+and adjust what kind of notes and insights you produce.
 
-IMPORTANT: The user has manually edited this document. You must preserve their edits and structure while incorporating new information.
+IMPORTANT RULES:
+1. The user has manually edited this document. You must preserve their structure, tone, headings, and wording.
+2. Never delete, rewrite, or override user-authored content.
+3. Add new information only where it logically belongs.
+4. Consolidate related ideas instead of duplicating them.
+5. If the context changes (e.g., it shifts from lecture to personal conversation), adapt your style accordingly.
 
 CURRENT USER-EDITED DOCUMENT:
 ${previousInsight}
 
-NEW TRANSCRIPTS (since last update):
+NEW TRANSCRIPTS:
 ${newTranscriptsText}
 
-FULL MEETING TRANSCRIPT (for context):
+FULL SESSION CONTEXT (all transcripts so far):
 ${allTranscriptsText}
+
+RELEVANT DOCUMENT CONTEXT (RAG):
 ${ragContext}
 
-Update the document by:
-1. Preserving the user's structure, formatting, and key points they wrote
-2. Adding new insights, facts, and next steps from the new transcripts
-3. Merging related information rather than duplicating
-4. Keeping it organized and actionable
+YOUR JOB:
+- Infer the scenario.
+- Respect the user's structure.
+- Add insights, clarifications, takeaways, or next steps that fit the situation.
+- Be precise and concise - focus on essential information only.
+- Keep everything concise and useful in real time.
+- Never summarize the entire meeting; update only with what's new and meaningful.
 
-Do NOT overwrite or remove user edits. Integrate new information while respecting their work.`;
+Update the document now.`;
   } else if (previousInsight) {
     // Standard update - no recent user edits
-    prompt = `You are a real-time meeting assistant maintaining an evolving insight document for this meeting session.
+    prompt = `You are a real-time contextual listening assistant. You update an evolving insight document that changes as the session continues. 
+You infer the type of situation from the transcript (lecture, meeting, personal conversation, video, etc.) 
+and adapt your notes to be appropriate for that context.
 
 PREVIOUS INSIGHT DOCUMENT:
 ${previousInsight}
 
-NEW TRANSCRIPTS (since last update):
+NEW TRANSCRIPTS:
 ${newTranscriptsText}
 
-FULL MEETING TRANSCRIPT (for context):
+FULL SESSION CONTEXT:
 ${allTranscriptsText}
+
+RELEVANT DOCUMENT CONTEXT (RAG):
 ${ragContext}
 
-Update the insight document to incorporate the new information. Keep it concise, actionable, and focused on what helps right now. Do not just summarize - provide insights that evolve as the meeting progresses.`;
+INSTRUCTIONS:
+- Incorporate new information into the existing document.
+- Be precise and concise - focus on essential information only.
+- Keep the notes concise, structured, and focused on what matters most now.
+- Avoid generic summaries.
+- Produce insights, clarifications, background connections, or actionable next steps.
+- Merge new info with earlier notes when appropriate.
+- Adapt tone and approach to the inferred context (work meeting vs. lecture vs. personal talk).
+
+Update the document based on the new information.`;
   } else {
     // Initial document creation
-    prompt = `You are a real-time meeting assistant. Create an initial insight document for this meeting session.
+    prompt = `You are a real-time contextual listening assistant. 
+You will create the first version of a living insight document based on the initial transcript. 
+You infer what kind of content this is (meeting, lecture, YouTube video, personal discussion, etc.) 
+and generate notes that fit that context.
 
-MEETING TRANSCRIPT:
+INITIAL TRANSCRIPTS:
 ${allTranscriptsText}
+
+RELEVANT DOCUMENT CONTEXT (RAG):
 ${ragContext}
 
-Create a living document that will evolve throughout the meeting. Include:
-- Key notes and facts
-- Impressions and insights
-- Relevant context from documents (if provided)
-- Next steps and action items
+Create a structured, useful insight document that may include:
+- Key ideas or facts
+- Interpretation or takeaways
+- Background context or references (from RAG if helpful)
+- Action items or potential next steps (only if appropriate to the inferred context)
+- Questions or clarifications that would help the user
 
-This document will be updated incrementally as more transcripts come in. Make it organized and useful.`;
+Be precise and concise - focus on essential information only. This document will be incrementally updated. Keep it clean, clear, and ready to grow.`;
   }
 
   try {
@@ -141,14 +171,14 @@ This document will be updated incrementally as more transcripts come in. Make it
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful meeting assistant maintaining a living document workspace. The document evolves throughout the meeting, incorporating notes, impressions, facts, insights, and next steps. When the user has edited the document, always preserve their edits and merge new information intelligently.',
+          content: 'You are a helpful contextual listening assistant maintaining a living document workspace. You adapt to different contexts (meetings, lectures, conversations, videos, etc.) and produce appropriate notes and insights. Be precise and concise - focus on essential information only. The document evolves throughout the session, incorporating notes, impressions, facts, insights, and next steps. When the user has edited the document, always preserve their edits and merge new information intelligently.',
         },
         {
           role: 'user',
           content: prompt,
         },
       ],
-      max_tokens: 500, // Increased for full living document
+      max_tokens: 2000, // Increased for full living document - allows for comprehensive but concise insights
       temperature: 0.7,
     });
 

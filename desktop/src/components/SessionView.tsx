@@ -86,7 +86,7 @@ export function SessionView({
       },
     });
 
-  // Poll for session insights when listening
+  // Poll for session insights when listening - at the same interval as chunk making
   useEffect(() => {
     if (!isListening || !sessionId) {
       if (insightPollIntervalRef.current) {
@@ -134,9 +134,10 @@ export function SessionView({
       }
     };
 
-    // Poll immediately, then every 5 seconds
+    // Poll at the same interval as chunk making (chunkDuration is in seconds, convert to ms)
+    const pollInterval = chunkDuration * 1000;
     pollInsights();
-    insightPollIntervalRef.current = window.setInterval(pollInsights, 5000);
+    insightPollIntervalRef.current = window.setInterval(pollInsights, pollInterval);
 
     return () => {
       if (insightPollIntervalRef.current) {
@@ -144,7 +145,7 @@ export function SessionView({
         insightPollIntervalRef.current = null;
       }
     };
-  }, [isListening, sessionId, backendUrl]);
+  }, [isListening, sessionId, backendUrl, chunkDuration]);
 
   const handleToggle = async () => {
     if (isListening) {
@@ -231,6 +232,7 @@ export function SessionView({
         backendUrl={backendUrl}
         onContentChange={handleDocumentChange}
         isLLMUpdating={isLLMUpdating}
+        isListening={isListening}
         onStatusChange={setDocumentStatus}
       />
     </div>

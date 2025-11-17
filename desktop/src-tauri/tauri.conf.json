@@ -18,7 +18,19 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "capabilities": [
+        {
+          "identifier": "main-capability",
+          "description": "Main window capability with notification permissions",
+          "windows": ["*"],
+          "permissions": [
+            "core:default",
+            "shell:allow-open",
+            "notification:default"
+          ]
+        }
+      ]
     }
   },
   "bundle": {

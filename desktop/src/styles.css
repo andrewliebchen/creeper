@@ -190,7 +190,7 @@ button:focus-visible {
 .app-main {
   flex: 1;
   overflow: hidden;
-  padding: 1.5rem 2rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -313,22 +313,20 @@ button:focus-visible {
 
 /* Session View */
 .session-view {
-  max-width: 1600px;
   width: 100%;
-  margin: 0 auto;
   height: 100%;
   display: flex;
   flex-direction: column;
+  background-color: #242424;
 }
 
 .session-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #444;
+  padding: 1.5rem 2rem;
   flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .session-header h2 {
@@ -357,6 +355,7 @@ button:focus-visible {
 
 .session-view .error {
   flex-shrink: 0;
+  padding: 0 2rem;
   margin: 0.5rem 0;
 }
 
@@ -366,7 +365,7 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  margin-top: 0.75rem;
+  overflow: hidden;
 }
 
 .status-saving {
@@ -385,19 +384,169 @@ button:focus-visible {
   width: 100%;
   flex: 1;
   min-height: 0;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #444;
-  background-color: #1a1a1a;
+  padding: 2rem;
+  border: none;
+  background-color: transparent;
   color: inherit;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.95em;
-  line-height: 1.6;
+  font-size: 1em;
+  line-height: 1.8;
   resize: none;
+  outline: none;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .document-textarea:focus {
   outline: none;
-  border-color: #646cff;
+}
+
+.document-textarea::placeholder {
+  color: #666;
+  opacity: 1;
+}
+
+.document-markdown {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  padding: 2rem;
+  border: none;
+  background-color: transparent;
+  color: inherit;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 1em;
+  line-height: 1.8;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  box-sizing: border-box;
+}
+
+.document-markdown > * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.document-markdown-placeholder {
+  color: #666;
+  font-style: italic;
+}
+
+.document-markdown h1,
+.document-markdown h2,
+.document-markdown h3,
+.document-markdown h4,
+.document-markdown h5,
+.document-markdown h6 {
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #fff;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.document-markdown h1 {
+  font-size: 2em;
+  margin-top: 0;
+  font-weight: 700;
+}
+
+.document-markdown h2 {
+  font-size: 1.5em;
+  margin-top: 2em;
+}
+
+.document-markdown h3 {
+  font-size: 1.25em;
+}
+
+.document-markdown p {
+  margin-bottom: 1.2em;
+  line-height: 1.8;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.document-markdown ul,
+.document-markdown ol {
+  margin-bottom: 1.2em;
+  padding-left: 1.5em;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.document-markdown li {
+  margin-bottom: 0.5em;
+  line-height: 1.8;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.document-markdown code {
+  background-color: rgba(100, 108, 255, 0.15);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #a5b4fc;
+}
+
+.document-markdown pre {
+  background-color: rgba(100, 108, 255, 0.1);
+  padding: 1.2em;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 1.2em;
+  border-left: 3px solid rgba(100, 108, 255, 0.3);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.document-markdown pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.document-markdown blockquote {
+  border-left: 3px solid rgba(100, 108, 255, 0.5);
+  padding-left: 1.5em;
+  margin-left: 0;
+  color: #bbb;
+  margin-bottom: 1.2em;
+  font-style: italic;
+}
+
+.document-markdown strong {
+  font-weight: 600;
+}
+
+.document-markdown em {
+  font-style: italic;
+}
+
+.document-markdown a {
+  color: #646cff;
+  text-decoration: none;
+}
+
+.document-markdown a:hover {
+  text-decoration: underline;
+}
+
+.document-markdown hr {
+  border: none;
+  border-top: 1px solid #444;
+  margin: 1.5em 0;
 }
 

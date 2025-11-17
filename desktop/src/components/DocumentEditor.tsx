@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { updateDocument } from '../services/api';
 
 interface DocumentEditorProps {
@@ -7,6 +8,7 @@ interface DocumentEditorProps {
   backendUrl: string;
   onContentChange?: (content: string) => void;
   isLLMUpdating?: boolean;
+  isListening?: boolean;
   onStatusChange?: (status: { isSaving: boolean; lastSaved: Date | null; isLLMUpdating: boolean }) => void;
 }
 
@@ -16,6 +18,7 @@ export function DocumentEditor({
   backendUrl,
   onContentChange,
   isLLMUpdating = false,
+  isListening = false,
   onStatusChange,
 }: DocumentEditorProps) {
   const [content, setContent] = useState(initialContent);
@@ -32,6 +35,11 @@ export function DocumentEditor({
   }, [initialContent]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    // Prevent editing while listening or while LLM is updating (to avoid overwriting user edits)
+    if (isListening || isLLMUpdating) {
+      return;
+    }
+
     const newContent = e.target.value;
     setContent(newContent);
     onContentChange?.(newContent);
@@ -57,7 +65,8 @@ export function DocumentEditor({
   };
 
   const saveDocument = async (contentToSave: string) => {
-    if (isSaving) return;
+    // Don't save if already saving, listening, or LLM is updating
+    if (isSaving || isListening || isLLMUpdating) return;
 
     setIsSaving(true);
     try {
@@ -79,17 +88,39 @@ export function DocumentEditor({
     onStatusChange?.({ isSaving, lastSaved, isLLMUpdating });
   }, [isSaving, lastSaved, isLLMUpdating, onStatusChange]);
 
+  const isDisabled = isListening || isLLMUpdating;
+  
+  const getPlaceholder = () => {
+    if (isListening) {
+      return "Document editing is disabled while listening. Stop listening to edit.";
+    }
+    if (isLLMUpdating) {
+      return "Document editing is disabled while LLM is updating. Please wait...";
+    }
+    return "Document will be updated automatically as the meeting progresses...";
+  };
+
   return (
     <div className="document-editor">
-      <textarea
-        ref={textareaRef}
-        value={content}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        className="document-textarea"
-        placeholder="Document will be updated automatically as the meeting progresses..."
-        rows={20}
-      />
+      {isDisabled ? (
+        <div className="document-markdown">
+          {content ? (
+            <ReactMarkdown>{content}</ReactMarkdown>
+          ) : (
+            <div className="document-markdown-placeholder">{getPlaceholder()}</div>
+          )}
+        </div>
+      ) : (
+        <textarea
+          ref={textareaRef}
+          value={content}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          className="document-textarea"
+          placeholder={getPlaceholder()}
+          rows={20}
+        />
+      )}
     </div>
   );
 }
