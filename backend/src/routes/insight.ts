@@ -87,11 +87,10 @@ You automatically infer the type of situation (work meeting, lecture, personal c
 and adjust what kind of notes and insights you produce.
 
 IMPORTANT RULES:
-1. The user has manually edited this document. You must preserve their structure, tone, headings, and wording.
-2. Never delete, rewrite, or override user-authored content.
-3. Add new information only where it logically belongs.
-4. Consolidate related ideas instead of duplicating them.
-5. If the context changes (e.g., it shifts from lecture to personal conversation), adapt your style accordingly.
+1. Make your best guess about the context of the meeting/conversation. This may change over time as you receive more information.
+2. Use your intelligence to understand the context and add new information only where it logically belongs.
+3. Consolidate related ideas instead of duplicating them.
+4. If the context changes (e.g., it shifts from lecture to personal conversation), adapt your style accordingly.
 
 CURRENT USER-EDITED DOCUMENT:
 ${previousInsight}
@@ -105,13 +104,17 @@ ${allTranscriptsText}
 RELEVANT DOCUMENT CONTEXT (RAG):
 ${ragContext}
 
+CRITICAL: Review the FULL SESSION CONTEXT to understand what this meeting/conversation is actually about. 
+Even though the user has edited the document, you should still ensure your additions align with the true nature of the meeting 
+as revealed by all available transcripts. If new information clarifies or corrects the meeting's focus, incorporate that understanding.
+
 YOUR JOB:
-- Infer the scenario.
-- Respect the user's structure.
-- Add insights, clarifications, takeaways, or next steps that fit the situation.
-- Be precise and concise - focus on essential information only.
-- Keep everything concise and useful in real time.
-- Never summarize the entire meeting; update only with what's new and meaningful.
+- Review the FULL SESSION CONTEXT to understand the actual meeting topic and context
+- Respect the user's structure and edits
+- Add insights, clarifications, takeaways, or next steps that fit the situation and align with the full context
+- Be precise and concise - focus on essential information only
+- Keep everything concise and useful in real time
+- Never summarize the entire meeting; update only with what's new and meaningful
 
 Update the document now.`;
   } else if (previousInsight) {
@@ -126,22 +129,31 @@ ${previousInsight}
 NEW TRANSCRIPTS:
 ${newTranscriptsText}
 
-FULL SESSION CONTEXT:
+FULL SESSION CONTEXT (all transcripts so far):
 ${allTranscriptsText}
 
 RELEVANT DOCUMENT CONTEXT (RAG):
 ${ragContext}
 
-INSTRUCTIONS:
-- Incorporate new information into the existing document.
-- Be precise and concise - focus on essential information only.
-- Keep the notes concise, structured, and focused on what matters most now.
-- Avoid generic summaries.
-- Produce insights, clarifications, background connections, or actionable next steps.
-- Merge new info with earlier notes when appropriate.
-- Adapt tone and approach to the inferred context (work meeting vs. lecture vs. personal talk).
+CRITICAL: Before updating the document, review the FULL SESSION CONTEXT above to understand what this meeting/conversation is actually about. 
+Your initial assumptions may have been incomplete or incorrect. As you receive more information, you must:
+- Re-evaluate what the meeting topic/focus actually is based on ALL available transcripts
+- Update your understanding of the meeting's purpose, participants, and key themes
+- Revise earlier notes if they were based on incorrect or incomplete assumptions
+- Ensure the document accurately reflects the true nature and content of the meeting as it becomes clearer
 
-Update the document based on the new information.`;
+INSTRUCTIONS:
+- First, review the FULL SESSION CONTEXT to understand the actual meeting topic and context
+- If your previous understanding was wrong or incomplete, update the document to reflect the correct understanding
+- Incorporate new information into the existing document
+- Be precise and concise - focus on essential information only
+- Keep the notes concise, structured, and focused on what matters most now
+- Avoid generic summaries
+- Produce insights, clarifications, background connections, or actionable next steps
+- Merge new info with earlier notes when appropriate, but don't hesitate to revise incorrect assumptions
+- Adapt tone and approach to the actual inferred context (work meeting vs. lecture vs. personal talk)
+
+Update the document based on the new information and your re-evaluation of the full context.`;
   } else {
     // Initial document creation
     prompt = `You are a real-time contextual listening assistant. 
@@ -155,6 +167,13 @@ ${allTranscriptsText}
 RELEVANT DOCUMENT CONTEXT (RAG):
 ${ragContext}
 
+IMPORTANT: Analyze ALL available transcripts above to determine what this meeting/conversation is actually about. 
+Don't make assumptions based on just the first few lines - review the entire context to understand:
+- The meeting topic and purpose
+- Who the participants are and their roles
+- The main themes and discussion points
+- The type of interaction (work meeting, lecture, personal conversation, etc.)
+
 Create a structured, useful insight document that may include:
 - Key ideas or facts
 - Interpretation or takeaways
@@ -162,7 +181,8 @@ Create a structured, useful insight document that may include:
 - Action items or potential next steps (only if appropriate to the inferred context)
 - Questions or clarifications that would help the user
 
-Be precise and concise - focus on essential information only. This document will be incrementally updated. Keep it clean, clear, and ready to grow.`;
+Be precise and concise - focus on essential information only. This document will be incrementally updated as more information arrives, 
+and you will re-evaluate your understanding of the meeting topic as the full context becomes clearer. Keep it clean, clear, and ready to grow.`;
   }
 
   try {
