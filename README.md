@@ -8,7 +8,7 @@ Creeper captures audio from your microphone in 60-second chunks, transcribes the
 
 ## Tech Stack
 
-- **Desktop**: Tauri + React + TypeScript
+- **Desktop**: Tauri + React + TypeScript + Tailwind CSS + shadcn/ui
 - **Backend**: Node.js + TypeScript + Express
 - **Database**: Supabase (Postgres + pgvector)
 - **AI**: OpenAI (Whisper, embeddings, GPT-4o-mini)
@@ -97,6 +97,9 @@ pnpm test:integration  # Full system test
 - ✅ System tray integration
 - ✅ macOS notifications
 - ✅ Settings panel for API keys
+- ✅ Document edit mode with LLM merge
+- ✅ Modern UI with shadcn/ui components
+- ✅ System-based light/dark mode support
 
 ## Usage
 
@@ -105,6 +108,18 @@ pnpm test:integration  # Full system test
 3. Speak into your microphone
 4. Wait ~5 seconds for transcription and insights
 5. View insights in the app window or notifications
+
+### Editing Documents
+
+- Click the **"Edit"** button to enter edit mode
+- While in edit mode:
+  - Audio recording continues (chunks are still captured)
+  - LLM polling pauses (no automatic updates)
+  - Document becomes editable (markdown textarea)
+- Click **"Done Editing"** to exit edit mode:
+  - Your edits are saved
+  - LLM immediately merges your changes with new transcripts
+  - Normal LLM polling resumes
 
 ## Architecture
 

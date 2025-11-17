@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 
 interface SettingsProps {
   onClose: () => void;
@@ -45,29 +56,37 @@ export function Settings({ onClose }: SettingsProps) {
   };
 
   return (
-    <div className="settings-overlay">
-      <div className="settings-modal">
-        <h2>Settings</h2>
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Settings</DialogTitle>
+          <DialogDescription>
+            Configure your Creeper settings
+          </DialogDescription>
+        </DialogHeader>
         
-        <div className="settings-group">
-          <label>
-            Chunk Duration (seconds):
-            <input
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="chunk-duration">Chunk Duration (seconds)</Label>
+            <Input
+              id="chunk-duration"
               type="number"
               value={chunkDuration}
               onChange={(e) => setChunkDuration(parseInt(e.target.value, 10))}
               min="30"
               max="120"
             />
-          </label>
+          </div>
         </div>
 
-        <div className="settings-actions">
-          <button onClick={saveSettings}>Save</button>
-          <button onClick={onClose}>Cancel</button>
-        </div>
-      </div>
-    </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={saveSettings}>Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

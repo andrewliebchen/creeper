@@ -10,17 +10,28 @@ let permissionChecked = false;
 
 async function ensureNotificationPermission(): Promise<boolean> {
   if (permissionChecked) {
-    return await isPermissionGranted();
+    try {
+      return await isPermissionGranted();
+    } catch (error) {
+      console.warn('Failed to check notification permission:', error);
+      return false;
+    }
   }
   
   permissionChecked = true;
   
-  let permissionGranted = await isPermissionGranted();
-  if (!permissionGranted) {
-    permissionGranted = await requestPermission();
+  try {
+    let permissionGranted = await isPermissionGranted();
+    if (!permissionGranted) {
+      const requested = await requestPermission();
+      // requestPermission returns 'granted' | 'denied' | string
+      permissionGranted = requested === 'granted';
+    }
+    return permissionGranted;
+  } catch (error) {
+    console.warn('Notification permission check failed (may not be available in dev mode):', error);
+    return false;
   }
-  
-  return permissionGranted;
 }
 
 export async function showInsightNotification(bullets: string[]): Promise<void> {

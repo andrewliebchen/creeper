@@ -1,420 +1,75 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+      --popover: 222.2 84% 4.9%;
+      --popover-foreground: 210 40% 98%;
+      --primary: 210 40% 98%;
+      --primary-foreground: 222.2 47.4% 11.2%;
+      --secondary: 217.2 32.6% 17.5%;
+      --secondary-foreground: 210 40% 98%;
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+      --accent: 217.2 32.6% 17.5%;
+      --accent-foreground: 210 40% 98%;
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 210 40% 98%;
+      --border: 217.2 32.6% 17.5%;
+      --input: 217.2 32.6% 17.5%;
+      --ring: 212.7 26.8% 83.9%;
+    }
+  }
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  #root {
+    @apply w-full h-screen m-0 p-0;
+  }
 }
 
-#root {
-  width: 100%;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-}
-
-.container {
-  padding: 2rem;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-.status {
-  margin-top: 2rem;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  color: #ffffff;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-
-button:hover {
-  border-color: #646cff;
-}
-
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-.error {
-  color: #ff6b6b;
-  margin: 0.5rem 0;
-}
-
-.chunks {
-  margin-top: 2rem;
-  text-align: left;
-}
-
-.chunks ul {
-  list-style: none;
-  padding: 0;
-}
-
-.chunks li {
-  padding: 0.5rem;
-  margin: 0.25rem 0;
-  background-color: #1a1a1a;
-  border-radius: 4px;
-}
-
-.snippet-id {
-  font-size: 0.8em;
-  color: #888;
-}
-
-.insights {
-  margin-top: 2rem;
-  text-align: left;
-}
-
-.insights ul {
-  list-style: none;
-  padding: 0;
-}
-
-.insights li {
-  padding: 1rem;
-  margin: 0.5rem 0;
-  background-color: #2a2a2a;
-  border-radius: 4px;
-  border-left: 3px solid #646cff;
-}
-
-.insights li ul {
-  margin-top: 0.5rem;
-  padding-left: 1rem;
-}
-
-.insights li ul li {
-  background-color: transparent;
-  padding: 0.25rem 0;
-  border-left: none;
-  font-size: 0.9em;
-}
-
-.settings-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.settings-modal {
-  background-color: #242424;
-  padding: 2rem;
-  border-radius: 8px;
-  max-width: 500px;
-  width: 90%;
-}
-
-.settings-group {
-  margin: 1rem 0;
-}
-
-.settings-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-}
-
-.settings-group input {
-  width: 100%;
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #444;
-  background-color: #1a1a1a;
-  color: inherit;
-}
-
-.settings-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  justify-content: flex-end;
-}
-
-/* App layout */
-.app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100vw;
-}
-
-/* App header removed */
-
-.app-content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-.app-sidebar {
-  width: 300px;
-  border-right: 1px solid #444;
-  overflow-y: auto;
-  background-color: #1a1a1a;
-}
-
-.app-main {
-  flex: 1;
-  overflow: hidden;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.welcome-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  text-align: center;
-}
-
-/* Session List */
-.session-list {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.session-list-header {
-  padding: 1rem;
-  border-bottom: 1px solid #444;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.settings-btn,
-.new-session-btn {
-  padding: 0.4em 0.8em;
-  font-size: 0.9em;
-}
-
-.session-list-items {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.session-item {
-  padding: 1rem;
-  border-bottom: 1px solid #333;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.session-item:hover {
-  background-color: #2a2a2a;
-}
-
-.session-item.active {
-  background-color: #2a2a2a;
-  border-left: 3px solid #646cff;
-}
-
-.session-item.is-active {
-  border-left: 3px solid #4caf50;
-}
-
-.session-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.session-item-title {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.session-item-name {
-  font-size: 1em;
-  font-weight: 500;
-  color: #fff;
-}
-
-.session-item-time {
-  font-size: 0.9em;
-  color: #aaa;
-}
-
-.session-item-time-secondary {
-  font-size: 0.75em;
-  color: #888;
-}
-
-.session-item-badge {
-  font-size: 0.75em;
-  padding: 0.2em 0.5em;
-  background-color: #4caf50;
-  color: white;
-  border-radius: 4px;
-}
-
-.session-item-preview {
-  font-size: 0.85em;
-  color: #888;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.session-list-empty {
-  padding: 2rem;
-  text-align: center;
-  color: #888;
-}
-
-.loading {
-  padding: 1rem;
-  text-align: center;
-  color: #888;
-}
-
-/* Session View */
-.session-view {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: #242424;
-}
-
-.session-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 1.5rem 2rem;
-  flex-shrink: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.session-header h2 {
-  margin: 0;
-  font-size: 1.2em;
-  line-height: 1.3;
-}
-
-.session-id {
-  font-size: 0.6em;
-  color: #888;
-  font-weight: normal;
-}
-
-.session-meta {
-  margin: 0.25rem 0 0 0;
-  font-size: 0.85em;
-  color: #888;
-  line-height: 1.4;
-}
-
-.session-controls {
-  display: flex;
-  gap: 1rem;
-}
-
-.session-view .error {
-  flex-shrink: 0;
-  padding: 0 2rem;
-  margin: 0.5rem 0;
-}
-
-/* Document Editor */
-.document-editor {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.status-saving {
-  color: #ffa500;
-}
-
-.status-saved {
-  color: #4caf50;
-}
-
-.status-llm-updating {
-  color: #646cff;
-}
-
-.document-textarea {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  padding: 2rem;
-  border: none;
-  background-color: transparent;
-  color: inherit;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 1em;
-  line-height: 1.8;
-  resize: none;
-  outline: none;
-  box-sizing: border-box;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-}
-
-.document-textarea:focus {
-  outline: none;
-}
-
-.document-textarea::placeholder {
-  color: #666;
-  opacity: 1;
-}
-
+/* Document Editor Markdown Styles */
 .document-markdown {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  padding: 2rem;
-  border: none;
-  background-color: transparent;
-  color: inherit;
+  @apply w-full flex-1 min-h-0 p-8 border-none bg-transparent;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 1em;
   line-height: 1.8;
@@ -427,13 +82,12 @@ button:focus-visible {
 }
 
 .document-markdown > * {
-  max-width: 100%;
+  @apply max-w-full;
   box-sizing: border-box;
 }
 
 .document-markdown-placeholder {
-  color: #666;
-  font-style: italic;
+  @apply text-muted-foreground italic;
 }
 
 .document-markdown h1,
@@ -442,11 +96,7 @@ button:focus-visible {
 .document-markdown h4,
 .document-markdown h5,
 .document-markdown h6 {
-  margin-top: 2em;
-  margin-bottom: 0.75em;
-  font-weight: 600;
-  line-height: 1.4;
-  color: #fff;
+  @apply mt-8 mb-3 font-semibold leading-tight text-foreground;
   overflow-wrap: break-word;
   word-wrap: break-word;
   max-width: 100%;
@@ -454,23 +104,19 @@ button:focus-visible {
 }
 
 .document-markdown h1 {
-  font-size: 2em;
-  margin-top: 0;
-  font-weight: 700;
+  @apply text-3xl mt-0 font-bold;
 }
 
 .document-markdown h2 {
-  font-size: 1.5em;
-  margin-top: 2em;
+  @apply text-2xl mt-8;
 }
 
 .document-markdown h3 {
-  font-size: 1.25em;
+  @apply text-xl;
 }
 
 .document-markdown p {
-  margin-bottom: 1.2em;
-  line-height: 1.8;
+  @apply mb-5 leading-relaxed;
   overflow-wrap: break-word;
   word-wrap: break-word;
   max-width: 100%;
@@ -479,74 +125,63 @@ button:focus-visible {
 
 .document-markdown ul,
 .document-markdown ol {
-  margin-bottom: 1.2em;
-  padding-left: 1.5em;
+  @apply mb-5 pl-6;
   max-width: 100%;
   box-sizing: border-box;
+  list-style-type: disc;
+}
+
+.document-markdown ol {
+  list-style-type: decimal;
 }
 
 .document-markdown li {
-  margin-bottom: 0.5em;
-  line-height: 1.8;
+  @apply mb-2 leading-relaxed;
   overflow-wrap: break-word;
   word-wrap: break-word;
   max-width: 100%;
   box-sizing: border-box;
+  display: list-item;
 }
 
 .document-markdown code {
-  background-color: rgba(100, 108, 255, 0.15);
-  padding: 0.15em 0.4em;
-  border-radius: 4px;
-  font-size: 0.9em;
-  color: #a5b4fc;
+  @apply bg-primary/10 px-1.5 py-0.5 rounded text-sm;
+  color: hsl(217.2 91.2% 59.8%);
 }
 
 .document-markdown pre {
-  background-color: rgba(100, 108, 255, 0.1);
-  padding: 1.2em;
-  border-radius: 6px;
-  overflow-x: auto;
-  margin-bottom: 1.2em;
-  border-left: 3px solid rgba(100, 108, 255, 0.3);
+  @apply bg-primary/5 p-5 rounded-md overflow-x-auto mb-5 border-l-4;
+  border-left-color: hsl(217.2 91.2% 59.8% / 0.3);
   max-width: 100%;
   box-sizing: border-box;
 }
 
 .document-markdown pre code {
-  background-color: transparent;
-  padding: 0;
+  @apply bg-transparent p-0;
 }
 
 .document-markdown blockquote {
-  border-left: 3px solid rgba(100, 108, 255, 0.5);
-  padding-left: 1.5em;
-  margin-left: 0;
-  color: #bbb;
-  margin-bottom: 1.2em;
-  font-style: italic;
+  @apply border-l-4 pl-6 ml-0 italic mb-5;
+  border-left-color: hsl(217.2 91.2% 59.8% / 0.5);
+  @apply text-muted-foreground;
 }
 
 .document-markdown strong {
-  font-weight: 600;
+  @apply font-semibold;
 }
 
 .document-markdown em {
-  font-style: italic;
+  @apply italic;
 }
 
 .document-markdown a {
-  color: #646cff;
-  text-decoration: none;
+  @apply text-primary no-underline;
 }
 
 .document-markdown a:hover {
-  text-decoration: underline;
+  @apply underline;
 }
 
 .document-markdown hr {
-  border: none;
-  border-top: 1px solid #444;
-  margin: 1.5em 0;
+  @apply border-0 border-t border-border my-6;
 }
-

@@ -6,26 +6,34 @@ import {
   endSession,
   resumeSession,
   getSession,
+  updateDocument,
 } from '../services/api';
 import { DocumentEditor } from './DocumentEditor';
 import { showInsightNotification } from '../services/notifications';
 import type { GetSessionResponse } from '@creeper/shared';
+import { Button } from './ui/button';
 
 interface SessionViewProps {
   sessionId: string;
   backendUrl: string;
   onSessionEnd?: () => void;
+  onListeningChange?: (isListening: boolean) => void;
+  autoStart?: boolean; // If true, automatically start listening when session loads
 }
 
 export function SessionView({
   sessionId,
   backendUrl,
   onSessionEnd,
+  onListeningChange,
+  autoStart = false,
 }: SessionViewProps) {
   const [sessionData, setSessionData] = useState<GetSessionResponse | null>(null);
   const [documentContent, setDocumentContent] = useState('');
   const [isLLMUpdating, setIsLLMUpdating] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [chunkDuration, setChunkDuration] = useState(60);
+  const [totalChunks, setTotalChunks] = useState(0);
   const [documentStatus, setDocumentStatus] = useState<{
     isSaving: boolean;
     lastSaved: Date | null;
@@ -33,12 +41,15 @@ export function SessionView({
   }>({ isSaving: false, lastSaved: null, isLLMUpdating: false });
   const insightPollIntervalRef = useRef<number | null>(null);
   const lastContentRef = useRef<string>('');
+  const totalChunksRef = useRef<number>(0);
 
   // Load session data
   useEffect(() => {
     loadSession();
-    // Reset last content ref when session changes
+    // Reset last content ref and total chunks when session changes
     lastContentRef.current = '';
+    totalChunksRef.current = 0;
+    setTotalChunks(0);
   }, [sessionId, backendUrl]);
 
   const loadSession = async () => {
@@ -80,15 +91,24 @@ export function SessionView({
           console.log(`📤 Uploading chunk to backend with sessionId: ${sessionId}`);
           await uploadAudioChunk(chunk, timestamp, duration, sessionId, backendUrl);
           console.log('✅ Chunk uploaded successfully');
+          // Increment total chunks (persists across edit mode)
+          totalChunksRef.current += 1;
+          setTotalChunks(totalChunksRef.current);
         } catch (err) {
           console.error('❌ Failed to upload chunk:', err);
         }
       },
     });
 
-  // Poll for session insights when listening - at the same interval as chunk making
+  // Notify parent when listening state changes
   useEffect(() => {
-    if (!isListening || !sessionId) {
+    onListeningChange?.(isListening);
+  }, [isListening, onListeningChange]);
+
+  // Poll for session insights when listening - at the same interval as chunk making
+  // Stop polling when in edit mode
+  useEffect(() => {
+    if (!isListening || !sessionId || isEditMode) {
       if (insightPollIntervalRef.current) {
         clearInterval(insightPollIntervalRef.current);
         insightPollIntervalRef.current = null;
@@ -145,7 +165,19 @@ export function SessionView({
         insightPollIntervalRef.current = null;
       }
     };
-  }, [isListening, sessionId, backendUrl, chunkDuration]);
+  }, [isListening, sessionId, backendUrl, chunkDuration, isEditMode]);
+
+  // Auto-start listening for new sessions
+  useEffect(() => {
+    if (autoStart && sessionData && !sessionData.session.endedAt && !isListening) {
+      // Small delay to ensure session is fully loaded
+      const timer = setTimeout(() => {
+        console.log('🚀 Auto-starting listening for new session');
+        startListening();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [autoStart, sessionData, isListening, startListening]);
 
   const handleToggle = async () => {
     if (isListening) {
@@ -184,47 +216,95 @@ export function SessionView({
     setDocumentContent(content);
   };
 
+  const handleEditModeToggle = async () => {
+    if (isEditMode) {
+      // Exiting edit mode - save document and trigger LLM update
+      try {
+        // Save the current document content (this sets user_edited_at)
+        await updateDocument(sessionId, documentContent, backendUrl);
+        console.log('Document saved after edit mode');
+        
+        // Immediately trigger LLM update to merge user edits with new transcripts
+        try {
+          setIsLLMUpdating(true);
+          setDocumentStatus(prev => ({ ...prev, isLLMUpdating: true }));
+          const insightResult = await getSessionInsight(sessionId, backendUrl);
+          if (insightResult.insight) {
+            const newContent = insightResult.insight.content || insightResult.insight.bullets?.join('\n') || '';
+            lastContentRef.current = newContent;
+            setDocumentContent(newContent);
+            await loadSession();
+            
+            // Show notification for new/updated insights
+            if (insightResult.insight.bullets && insightResult.insight.bullets.length > 0) {
+              await showInsightNotification(insightResult.insight.bullets);
+            }
+          }
+        } catch (err: any) {
+          // Handle 202 (waiting) responses gracefully
+          if (err?.response?.status !== 202 && err?.status !== 202) {
+            console.error('Failed to get session insight after edit:', err);
+          }
+        } finally {
+          setIsLLMUpdating(false);
+          setDocumentStatus(prev => ({ ...prev, isLLMUpdating: false }));
+        }
+      } catch (error) {
+        console.error('Failed to save document after edit mode:', error);
+      }
+    }
+    
+    setIsEditMode(!isEditMode);
+  };
+
   if (!sessionData) {
-    return <div className="loading">Loading session...</div>;
+    return <div className="p-4 text-center text-muted-foreground">Loading session...</div>;
   }
 
   return (
-    <div className="session-view">
-      <div className="session-header">
+    <div className="w-full h-full flex flex-col bg-background">
+      <div className="flex justify-between items-start p-6 flex-shrink-0 border-b border-border">
         <div>
-          <h2>
-            {sessionData.session.name || (
+          <h2 className="m-0 text-xl leading-tight font-semibold">
+            {(sessionData.session as any).name || (
               <>
                 Session{' '}
-                <span className="session-id">
+                <span className="text-xs text-muted-foreground font-normal">
                   ({sessionId.substring(0, 8)})
                 </span>
               </>
             )}
           </h2>
-          <p className="session-meta">
+          <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
             Started: {new Date(sessionData.session.startedAt).toLocaleString()}
             {sessionData.session.endedAt && (
               <> • Ended: {new Date(sessionData.session.endedAt).toLocaleString()}</>
             )}
-            {isListening && <> • Chunks captured: {chunkCount}</>}
-            {documentStatus.isSaving && <> • <span className="status-saving">Saving...</span></>}
+            {isListening && <> • Chunks captured: {totalChunks > 0 ? totalChunks : chunkCount}</>}
+            {documentStatus.isSaving && <> • <span className="text-orange-500">Saving...</span></>}
             {!documentStatus.isSaving && documentStatus.lastSaved && (
-              <> • <span className="status-saved">Saved {documentStatus.lastSaved.toLocaleTimeString()}</span></>
+              <> • <span className="text-green-500">Saved {documentStatus.lastSaved.toLocaleTimeString()}</span></>
             )}
             {documentStatus.isLLMUpdating && (
-              <> • <span className="status-llm-updating">LLM is updating...</span></>
+              <> • <span className="text-primary">LLM is updating...</span></>
             )}
           </p>
         </div>
-        <div className="session-controls">
-          <button onClick={handleToggle}>
+        <div className="flex gap-4">
+          <Button 
+            onClick={handleEditModeToggle}
+            variant={isEditMode ? "default" : "outline"}
+            disabled={documentStatus.isLLMUpdating}
+          >
+            {isEditMode ? 'Done Editing' : 'Edit'}
+          </Button>
+          <Button onClick={handleToggle}>
             {isListening ? 'Stop Listening' : sessionData.session.endedAt ? 'Resume' : 'Start Listening'}
-          </button>
+          </Button>
         </div>
       </div>
 
-      {error && <p className="error">Error: {error}</p>}
+      {error && <p className="flex-shrink-0 px-6 my-2 text-destructive">Error: {error}</p>}
 
       <DocumentEditor
         sessionId={sessionId}
@@ -233,6 +313,7 @@ export function SessionView({
         onContentChange={handleDocumentChange}
         isLLMUpdating={isLLMUpdating}
         isListening={isListening}
+        isEditMode={isEditMode}
         onStatusChange={setDocumentStatus}
       />
     </div>

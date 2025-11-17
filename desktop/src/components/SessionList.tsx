@@ -1,10 +1,15 @@
 import { useEffect, useState, useRef } from 'react';
 import { listSessions } from '../services/api';
 import type { SessionSummary } from '@creeper/shared';
+import { Button } from './ui/button';
+import { Card } from './ui/card';
+import { Badge } from './ui/badge';
+import { Separator } from './ui/separator';
 
 interface SessionListProps {
   backendUrl: string;
   currentSessionId: string | null;
+  listeningSessionId: string | null; // ID of session currently listening
   onSessionSelect: (sessionId: string) => void;
   onNewSession: () => void;
   refreshTrigger?: number; // Increment this to force refresh
@@ -47,6 +52,7 @@ function sessionsChanged(
 export function SessionList({
   backendUrl,
   currentSessionId,
+  listeningSessionId,
   onSessionSelect,
   onNewSession,
   refreshTrigger,
@@ -114,54 +120,63 @@ export function SessionList({
   };
 
   return (
-    <div className="session-list">
-      <div className="session-list-header">
-        <button onClick={onNewSession} className="new-session-btn">
+    <div className="h-full flex flex-col">
+      <div className="p-4 border-b border-border flex justify-between items-center">
+        <Button onClick={onNewSession} size="sm" variant="default">
           + New
-        </button>
-        <button onClick={onSettingsClick} className="settings-btn">
+        </Button>
+        <Button onClick={onSettingsClick} size="sm" variant="outline">
           Settings
-        </button>
+        </Button>
       </div>
-      {loading && <div className="loading">Loading sessions...</div>}
-      {error && <div className="error">Error: {error}</div>}
+      {loading && <div className="p-4 text-center text-muted-foreground">Loading sessions...</div>}
+      {error && <div className="p-4 text-destructive">Error: {error}</div>}
       {!loading && !error && (
-        <ul className="session-list-items">
+        <ul className="flex-1 overflow-y-auto list-none p-0 m-0">
           {sessions.length === 0 ? (
-            <li className="session-list-empty">No sessions yet</li>
+            <li className="p-8 text-center text-muted-foreground">No sessions yet</li>
           ) : (
             sessions.map((session) => (
-              <li
-                key={session.id}
-                className={`session-item ${
-                  session.id === currentSessionId ? 'active' : ''
-                } ${session.isActive ? 'is-active' : ''}`}
-                onClick={() => onSessionSelect(session.id)}
-              >
-                <div className="session-item-header">
-                  <div className="session-item-title">
-                    {session.name ? (
-                      <span className="session-item-name">{session.name}</span>
-                    ) : (
-                      <span className="session-item-time">
-                        {formatDate(session.startedAt)}
-                      </span>
-                    )}
-                    {session.name && (
-                      <span className="session-item-time-secondary">
-                        {formatDate(session.startedAt)}
-                      </span>
+              <li key={session.id} className="border-b border-border last:border-b-0">
+                <Card
+                  className={`cursor-pointer transition-colors hover:bg-accent rounded-none border-0 border-l-4 ${
+                    session.id === currentSessionId
+                      ? 'bg-accent border-l-primary'
+                      : session.isActive
+                      ? 'border-l-green-500'
+                      : 'border-l-transparent'
+                  }`}
+                  onClick={() => onSessionSelect(session.id)}
+                >
+                  <div className="p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex flex-col gap-1">
+                        {session.name ? (
+                          <span className="text-base font-medium text-foreground">{session.name}</span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">
+                            {formatDate(session.startedAt)}
+                          </span>
+                        )}
+                        {session.name && (
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(session.startedAt)}
+                          </span>
+                        )}
+                      </div>
+                      {session.id === listeningSessionId && (
+                        <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                          Active
+                        </Badge>
+                      )}
+                    </div>
+                    {session.documentPreview && (
+                      <div className="text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
+                        {session.documentPreview}
+                      </div>
                     )}
                   </div>
-                  {session.isActive && (
-                    <span className="session-item-badge">Active</span>
-                  )}
-                </div>
-                {session.documentPreview && (
-                  <div className="session-item-preview">
-                    {session.documentPreview}
-                  </div>
-                )}
+                </Card>
               </li>
             ))
           )}

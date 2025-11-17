@@ -9,6 +9,7 @@ interface DocumentEditorProps {
   onContentChange?: (content: string) => void;
   isLLMUpdating?: boolean;
   isListening?: boolean;
+  isEditMode?: boolean;
   onStatusChange?: (status: { isSaving: boolean; lastSaved: Date | null; isLLMUpdating: boolean }) => void;
 }
 
@@ -19,6 +20,7 @@ export function DocumentEditor({
   onContentChange,
   isLLMUpdating = false,
   isListening = false,
+  isEditMode = false,
   onStatusChange,
 }: DocumentEditorProps) {
   const [content, setContent] = useState(initialContent);
@@ -35,8 +37,9 @@ export function DocumentEditor({
   }, [initialContent]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    // Prevent editing while listening or while LLM is updating (to avoid overwriting user edits)
-    if (isListening || isLLMUpdating) {
+    // In edit mode, allow editing even while listening or LLM updating
+    // Outside edit mode, prevent editing while listening or while LLM is updating
+    if (!isEditMode && (isListening || isLLMUpdating)) {
       return;
     }
 
@@ -50,9 +53,13 @@ export function DocumentEditor({
     }
 
     // Auto-save after 2 seconds of inactivity
-    saveTimeoutRef.current = window.setTimeout(() => {
-      saveDocument(newContent);
-    }, 2000);
+    // In edit mode, always allow auto-save (even while listening)
+    // Outside edit mode, only auto-save when not listening and not updating
+    if (isEditMode || (!isListening && !isLLMUpdating)) {
+      saveTimeoutRef.current = window.setTimeout(() => {
+        saveDocument(newContent);
+      }, 2000);
+    }
   };
 
   const handleBlur = () => {
@@ -61,12 +68,20 @@ export function DocumentEditor({
       clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = null;
     }
-    saveDocument(content);
+    // In edit mode, always allow save (even while listening)
+    // Outside edit mode, only save when not listening and not updating
+    if (isEditMode || (!isListening && !isLLMUpdating)) {
+      saveDocument(content);
+    }
   };
 
   const saveDocument = async (contentToSave: string) => {
-    // Don't save if already saving, listening, or LLM is updating
-    if (isSaving || isListening || isLLMUpdating) return;
+    // Don't save if already saving
+    if (isSaving) return;
+    
+    // In edit mode, always allow saving (even while listening or LLM updating)
+    // Outside edit mode, don't save while listening or LLM updating
+    if (!isEditMode && (isListening || isLLMUpdating)) return;
 
     setIsSaving(true);
     try {
@@ -88,20 +103,19 @@ export function DocumentEditor({
     onStatusChange?.({ isSaving, lastSaved, isLLMUpdating });
   }, [isSaving, lastSaved, isLLMUpdating, onStatusChange]);
 
-  const isDisabled = isListening || isLLMUpdating;
+  // Only allow editing when in edit mode
+  // Outside edit mode, always show markdown (readonly)
+  const isDisabled = !isEditMode;
   
   const getPlaceholder = () => {
-    if (isListening) {
-      return "Document editing is disabled while listening. Stop listening to edit.";
+    if (isEditMode) {
+      return "Edit the document. Changes will be merged with new transcripts when you're done.";
     }
-    if (isLLMUpdating) {
-      return "Document editing is disabled while LLM is updating. Please wait...";
-    }
-    return "Document will be updated automatically as the meeting progresses...";
+    return "Click 'Edit' to enable editing mode. Document will be updated automatically as the meeting progresses...";
   };
 
   return (
-    <div className="document-editor">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       {isDisabled ? (
         <div className="document-markdown">
           {content ? (
@@ -116,7 +130,10 @@ export function DocumentEditor({
           value={content}
           onChange={handleChange}
           onBlur={handleBlur}
-          className="document-textarea"
+          className="w-full flex-1 min-h-0 p-8 border-none bg-transparent text-foreground font-mono text-base leading-relaxed resize-none outline-none box-border overflow-wrap break-word"
+          style={{
+            fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', monospace",
+          }}
           placeholder={getPlaceholder()}
           rows={20}
         />
